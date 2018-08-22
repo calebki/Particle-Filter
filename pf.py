@@ -32,11 +32,14 @@ def particle_filter(data, prop_init, prop,
     for i in range(1, size):
         # Resampling step
         selections = np.random.choice(num_parts, num_parts, p=weights[:,i-1])
-        samples = samples[selections,:]
+        samples[:,i-1] = samples[selections,i-1]
         weights[:,i-1].fill(1/num_parts)
 
         samples[:,i] = prop(i, samples[:,i-1], num_parts)
-        weights[:,i] = weights[:,i-1] * obs_lik(data[i], samples[:,i]) \
+        # weights[:,i] = weights[:,i-1] * obs_lik(data[i], samples[:,i]) \
+        #         * trans_lik(i, samples[:,i], samples[:,i-1]) \
+        #         / prop_lik(i, samples[:,i], samples[:,i-1], data[i])
+        weights[:,i] = obs_lik(data[i], samples[:,i]) \
                 * trans_lik(i, samples[:,i], samples[:,i-1]) \
                 / prop_lik(i, samples[:,i], samples[:,i-1], data[i])
         weight_sum = np.sum(weights[:,i])
@@ -55,12 +58,12 @@ x, y = gen_sample(toy.latent, toy.obs, toy.init, size=samp_size)
 # plt.plot(range(0,samp_size), y)
 # plt.show()
 
+num_size = 10000
 pf_sample, weights = particle_filter(y, toy.init, toy.latent, toy.prop_init_lik,
                             toy.prop_lik, toy.init_lik, toy.obs_lik,
-                            toy.trans_lik, 1000)
+                            toy.trans_lik, num_size)
 
-print(pf_sample[:,99])
-print("--------------------------")
-print(weights[:,99])
-# plt.plot(pf_sample[:,40], weights[:,40])
-# plt.show()
+uniq, counts = np.unique(pf_sample[:, 40], return_counts = True)
+
+plt.plot(uniq, counts/num_size, '.')
+plt.show()

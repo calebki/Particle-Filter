@@ -41,8 +41,8 @@ def particle_filter(data, num_parts):
 samp_size = 100
 x, y = gen_sample(samp_size)
 
-num_size = 100000
-p = particle_filter(y, num_size)[:, 40]
+num_parts = 100000
+p = particle_filter(y, num_parts)[:, 40]
 xy = p[:, p[0].argsort()]
 plt.plot(*xy)
 plt.show()

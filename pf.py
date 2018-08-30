@@ -11,9 +11,9 @@ def gen_sample(size=100):
 
 
 def particle_filter(data, num_parts):
-    size = data.size
+    T = data.size
     ex = Example1(num_parts)
-    samples = np.zeros((size, num_parts))
+    samples = np.zeros((T, num_parts))
     weights = np.zeros_like(samples)
     samples[0] = ex.xt
     weights[0] = (
@@ -23,7 +23,7 @@ def particle_filter(data, num_parts):
     )
     weights[0] /= weights[0].sum()
 
-    for t in range(1, size):
+    for t in range(1, T):
         # Resampling step
         samples[t] = np.random.choice(
             samples[t - 1],
@@ -35,14 +35,14 @@ def particle_filter(data, num_parts):
         weights[t] = ex.obs_dist(samples[t]).pdf(data[t])
         weights[t] /= weights[t].sum()
 
-    return samples, weights
+    return np.array([samples, weights])  # 2 x T x num_parts
 
 
 samp_size = 100
 x, y = gen_sample(samp_size)
 
 num_size = 100000
-pf_sample, weights = particle_filter(y, num_size)
-
-plt.scatter(pf_sample[40], weights[40])
+p = particle_filter(y, num_size)[:, 40]
+xy = p[:, p[0].argsort()]
+plt.plot(*xy)
 plt.show()
